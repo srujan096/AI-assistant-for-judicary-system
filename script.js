@@ -22,6 +22,12 @@ async function sendMessage() {
     // Clear the input field
     input.value = '';
 
+    // Create a container for the bot's streaming response
+    const botMessage = document.createElement('div');
+    botMessage.className = 'message bot-message';
+    botMessage.textContent = 'DOJ Assistant: ';
+    chatWindow.appendChild(botMessage);
+
     // Send the message to the backend
     try {
         const response = await fetch('http://localhost:5000/chat', {
@@ -37,20 +43,24 @@ async function sendMessage() {
             throw new Error(`Network response was not ok: ${response.statusText}`);
         }
 
-        // Parse the JSON response
-        const data = await response.json();
+        // Process the streaming response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
 
-        // Display the bot's response in the chat window
-        const botMessage = document.createElement('div');
-        botMessage.className = 'message bot-message';
-        botMessage.textContent = `DOJ Assistant: ${data.message}`;
-        chatWindow.appendChild(botMessage);
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // Decode the chunk and append it to the bot's message
+            const chunk = decoder.decode(value);
+            botMessage.textContent += chunk;
+
+            // Scroll to the bottom of the chat window
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
     } catch (error) {
         // Display an error message if something goes wrong
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'message bot-message';
-        errorMessage.textContent = `DOJ Assistant: Sorry, I am unable to process your request at the moment. (Error: ${error.message})`;
-        chatWindow.appendChild(errorMessage);
+        botMessage.textContent = `DOJ Assistant: Sorry, I am unable to process your request at the moment. (Error: ${error.message})`;
     }
 
     // Scroll to the bottom of the chat window
