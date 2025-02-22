@@ -9,3 +9,4 @@ My first project
 ->ollama pull<your model name>
 ->python app.py
 
+..
