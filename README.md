@@ -1,4 +1,4 @@
-# AI-assistant-for-judicary-system
+# AI-assistant-for mental health
 My first project
 
 #commands
